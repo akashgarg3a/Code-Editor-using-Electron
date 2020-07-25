@@ -10,14 +10,16 @@ var os = require('os');
 var pty = require('node-pty');
 var Terminal = require('xterm').Terminal;
 
+let tabArr = [];
+
 // Initialize node-pty with an appropriate shell
 const shell = process.env[os.platform() === 'win32' ? 'COMSPEC' : 'SHELL'];
 const ptyProcess = pty.spawn(shell, [], {
-  name: 'xterm-color',
-  cols: 80,
-  rows: 30,
-  cwd: process.cwd(),
-  env: process.env
+    name: 'xterm-color',
+    cols: 80,
+    rows: 30,
+    cwd: process.cwd(),
+    env: process.env
 });
 
 // Initialize xterm.js and attach it to the DOM
@@ -27,10 +29,11 @@ xterm.open(document.getElementById('terminal'));
 // Setup communication between xterm.js and node-pty
 xterm.onData(data => ptyProcess.write(data));
 ptyProcess.on('data', function (data) {
-  xterm.write(data);
+    xterm.write(data);
 });
 
 $(document).ready(async function () {
+
     editor = await createEditor();
     let currpath = process.cwd();
     let data = [];
@@ -62,26 +65,50 @@ $(document).ready(async function () {
             })
         })
     }).on("select_node.jstree", function (e, data) {
-        // alert("node_id: " + data.node.id);
         updateEditor(data.node.id);
+        addTab(data.node.id);
     });
+    tabs.on("click", "span.ui-icon-close", function () {
+        deleteTab(this);
+    });
+    tabs.on('click','.ui-tabs-tab a',function(){
+        let path=$(this).attr('href');
+        clicked(path);
+    })
 })
 
-function addTab(path) {
-    let label = getNameFormat(path);
-    let id = path;
-    let tabTemplate =  "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
-    let li = $(tabTemplate.replace(/#\{href\}/g, "#" + id).replace(/#\{label\}/g, label));
+function clicked(path) {
+    updateEditor(path.substring(1));
+}
 
+function addTab(path) {
+    if (fs.lstatSync(path).isDirectory()) return;
+    let allpath = $('#tabs ul li a');
+    for (let i = 0; i < allpath.length; i++) {
+        if ($(allpath[i]).attr('unique') === path) {
+            $("#tabs").tabs('option', 'active', i);
+            return;
+        }
+    }
+
+    let label = getNameFormat(path);
+    let id = label;
+    let tabTemplate = "<li><a href='#{href}'  unique='#{qwerty}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
+    let li = $(tabTemplate.replace(/#\{href\}/g, "#" + id).replace(/#\{label\}/g, label).replace(/#\{qwerty\}/g, path));
+    // let obj ={"id" : li};
+
+    tabArr.push(path);
     tabs.find(".ui-tabs-nav").append(li);
     tabs.append("<div id='" + id + "'></div>");
     tabs.tabs("refresh");
+    let x = $('#tabs li').length - 1;
+    $("#tabs").tabs('option', 'active', x);
 }
 
 function updateEditor(path) {
     if (fs.lstatSync(path).isDirectory()) return;
+
     let fileName = getNameFormat(path);
-    addTab(path);
     let fileExtension = fileName.split('.')[1];
 
     if (fileExtension === "js")
@@ -91,14 +118,20 @@ function updateEditor(path) {
     monaco.editor.setModelLanguage(editor.getModel(), fileExtension);
     editor.setValue(data);
 
-    tabs.on( "click", "span.ui-icon-close", function() {
-        var panelId = $( this ).closest( "li" ).remove();
-        // $( "#" + panelId ).remove();
-        tabs.tabs( "refresh" );
-      });
 }
 
+function deleteTab(obj) {
+    var panelId = $(obj).closest("li").remove();
+    tabs.tabs("refresh");
+    if ($('#tabs ul li a').length == 0) {
+        editor.setValue("");
+        return;
 
+    } else {
+        $("#tabs").tabs('option', 'active', 0);
+        updateEditor($('#tabs ul li a').attr('unique'));
+    }
+}
 
 function getCurrDirectories(path) {
     if (fs.lstatSync(path).isFile()) {
