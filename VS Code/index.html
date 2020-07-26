@@ -1,31 +1,40 @@
 <html>
 
 <head>
-    <title>vs-code</title>
-    <link rel="stylesheet" href="./node_modules/jquery-ui-dist/jquery-ui.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-    <link rel="stylesheet" href="./style.css">
+    <title>VS-Code</title>
     <link rel="stylesheet" href="./node_modules/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <link rel="stylesheet" href="./node_modules/jquery-ui-dist/jquery-ui.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <div id="container"></div>
-    <div id="top-bar">
-        <div id="tabs">
-            <ul></ul>
+    <div id="container" class="container">
+        <div id="top-bar" class="top-bar">
+            <div class="btn-container">
+                <div class="btn new">New</div>
+                <div class="btn">Save</div>
+            </div>
+            <div id="tabs" class="tabs-container">
+                <ul></ul>
+            </div>
+        </div>
+        <div id="main-window" class="main-window">
+
+            <div id="explorer" class="explorer">
+                <div id="jstree" class="jstree"></div>
+            </div>
+            <div id="editor-terminal-window" class="editor-terminal-window">
+                <div id="editor" class="editor"></div>
+                <div id="terminal" class="terminal"></div>
+            </div>
         </div>
     </div>
-    <div id="main-window">
-        <div id="explorer">
-            <div id="jstree"></div>
-        </div>
-        <div id="editor-terminal-window">
-            <div id="editor"></div>
-            <div id="terminal" style="overflow: auto;"></div>
-        </div>
-    </div>
+
 </body>
-<script src="./index.js">
-</script>
+<script src="./node_modules/xterm/lib/xterm.js"></script>
+
+<script src="./index.js"></script>
 
 </html>
